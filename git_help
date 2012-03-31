@@ -1,4 +1,0 @@
-# to commit changes.  It's basically like svn.
-
-git commit -m "notes" file
-git push -u origin master
