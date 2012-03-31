@@ -323,7 +323,7 @@ void generate_next_generation(void){  //looks at current generation, writes to n
       if( get_led_xy((col+1),(row+1)) > 0 ) { neighbors++; } //SE
 
       if( get_led_xy(col,row) > 0 ){
-
+	
         //current cell is alive
         if( neighbors < 2 ){
           //Any live cell with fewer than two live neighbours dies, as if caused by under-population.
@@ -362,58 +362,58 @@ const char led_dir[20] = {
   ( 1<<LINE_C | 1<<LINE_E ), //LED 2
   ( 1<<LINE_D | 1<<LINE_E ), //LED 3
   ( 1<<LINE_E | 1<<LINE_D ), //LED 4
-
+  
   ( 1<<LINE_A | 1<<LINE_D ), //LED 5
   ( 1<<LINE_B | 1<<LINE_D ), //LED 6
   ( 1<<LINE_C | 1<<LINE_D ), //LED 7
   ( 1<<LINE_D | 1<<LINE_C ), //LED 8
   ( 1<<LINE_E | 1<<LINE_C ), //LED 9
-
+  
   ( 1<<LINE_A | 1<<LINE_C ), //LED 10
   ( 1<<LINE_B | 1<<LINE_C ), //LED 11
   ( 1<<LINE_C | 1<<LINE_B ), //LED 12
   ( 1<<LINE_D | 1<<LINE_B ), //LED 13
   ( 1<<LINE_E | 1<<LINE_B ), //LED 14
-
+  
   ( 1<<LINE_A | 1<<LINE_B ), //LED 15
   ( 1<<LINE_B | 1<<LINE_A ), //LED 16
   ( 1<<LINE_C | 1<<LINE_A ), //LED 17
   ( 1<<LINE_D | 1<<LINE_A ), //LED 18
   ( 1<<LINE_E | 1<<LINE_A ) //LED 19
-  };
+};
 
-  //PORTD output config for each LED (1 = High, 0 = Low)
+//PORTD output config for each LED (1 = High, 0 = Low)
 const char led_out[20] = {
   ( 1<<LINE_A ), //LED 0
   ( 1<<LINE_B ), //LED 1
   ( 1<<LINE_C ), //LED 2
   ( 1<<LINE_D ), //LED 3
   ( 1<<LINE_E ), //LED 4
-
+  
   ( 1<<LINE_A ), //LED 5
   ( 1<<LINE_B ), //LED 6
   ( 1<<LINE_C ), //LED 7
   ( 1<<LINE_D ), //LED 8
   ( 1<<LINE_E ), //LED 9
-
+  
   ( 1<<LINE_A ), //LED 10
   ( 1<<LINE_B ), //LED 11
   ( 1<<LINE_C ), //LED 12
   ( 1<<LINE_D ), //LED 13
   ( 1<<LINE_E ), //LED 14
-
+  
   ( 1<<LINE_A ), //LED 15
   ( 1<<LINE_B ), //LED 16
   ( 1<<LINE_C ), //LED 17
   ( 1<<LINE_D ), //LED 18
   ( 1<<LINE_E ) //LED 19
-  };
+};
 
-  void light_led(char led_num) { //led_num must be from 0 to 19
-    //DDRD is the ports in use
-    DDRD = led_dir[led_num];
-    PORTD = led_out[led_num];
-  }
+void light_led(char led_num) { //led_num must be from 0 to 19
+  //DDRD is the ports in use
+  DDRD = led_dir[led_num];
+  PORTD = led_out[led_num];
+}
 
 void leds_off() {
   DDRD = 0;
@@ -425,12 +425,9 @@ void draw_frame(void){
   for ( led=0; led<=19; led++ ) {
     //software PWM
     bright_val = led_grid[led];
-    for( b=0 ; b < bright_val ; b+=1) { 
-      light_led(led); 
-    } //delay while on
-    for( b=bright_val ; b<100 ; b+=1 ) { 
-      leds_off(); 
-    } //delay while off
+    // A little explanation here: If bright_val is 50, the LED will be lit 50% of the time by the following two lines.
+    for( b=0 ; b < bright_val ; b+=1) { light_led(led); } //delay while on
+    for( b=bright_val ; b<100 ; b+=1 ) { leds_off(); } //delay while off
   }
 }
 
