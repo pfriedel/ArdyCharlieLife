@@ -46,9 +46,7 @@ char led_grid_next[20] = {
 };
 
 void setup() {
-  pinMode( 13, INPUT );
   randomSeed(analogRead(0));
-  //  Serial.begin(9600);  
   positive_h_test();
   negative_h_test();
   positive_v_test();
@@ -58,7 +56,6 @@ void setup() {
 }
 
 void loop() {
-  pinMode(13, INPUT);
   char led;
   
   while(1){
