@@ -1,0 +1,56 @@
+This is a lightly modified version of
+http://b2ben.blogspot.com/2011/02/diving-into-microcontrollers-my-tiny.html for
+Arduino.  Build a 5x4 charlieplex per his instructions and plug it in to pins 2,
+3, 4, 5 and 6.
+
+If you build this for another Arduino or use different pins, you'll need to
+update the DDRD and PORTD calls in light_led(); Dig up your AVR schematic and
+make sure your pins are all on the same set of ports, otherwise I'm not sure how
+you'd deal with it.
+
+I've included a Fritzing file of the breadboard if you want to build it as a
+proof of concept before pulling out your soldering iron.  The broad gist of it
+is that pins 1, 6, 11, 16 and 21 are all common anodes.  Make a bus on the other
+side of the breadboard for that anode, and then you run jumpers from every
+cathode to every anode's bus, excepting the cathode for the current LED's anode.
+
+My assembly notes are as follows:
+
+1 = pin A
+6 = pin B
+11 = pin C
+16 = pin D
+21 = pin E
+
+pin 1 = A+ 
+pin 2 = 0- goes to E
+pin 3 = 5- goes to D
+pin 4 = 10- goes to C
+pin 5 = 15- goes to B
+pin 6 = B+
+pin 7 = 1- goes to E
+pin 8 = 6- goes to D
+pin 9 = 11- goes to C
+pin 10 = 16- goes to A
+pin 11 = C+
+pin 12 = 2- goes to E
+pin 13 = 7- goes to D
+pin 14 = 12- goes to B
+pin 15 = 17- goes to A
+pin 16 = D+
+pin 17 = 3- goes to E
+pin 18 = 8- goes to C
+pin 19 = 13- goes to B
+pin 20 = 18- goes to A
+pin 21 = E+
+pin 22 = 4- goes to D
+pin 23 = 9- goes to C
+pin 24 = 14- goes to B
+pin 25 = 19- goes to A
+
+ 0  1  2  3 - E bus
+ 4  5  6  7 - D bus
+ 8  9 10 11 - C bus
+12 13 14 15 - B bus
+16 17 18 19 - A bus
+
