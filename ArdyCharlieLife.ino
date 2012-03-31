@@ -9,12 +9,13 @@
 
 */
 
+// http://www.hobbytronics.co.uk/arduino-atmega328-pinout
 
-#define LINE_A 2 //Pin 5 (PB0) on ATtiny85
-#define LINE_B 3 //Pin 6 (PB1) on ATtiny85
-#define LINE_C 4 //Pin 7 (PB2) on ATtiny85
-#define LINE_D 5 //Pin 2 (PB3) on ATtiny85
-#define LINE_E 6 //Pin 3 (PB4) on ATtiny85
+#define LINE_A 2 //Pin 2 (PD2) on ATmega328
+#define LINE_B 3 //Pin 3 (PD3) on ATmega328
+#define LINE_C 4 //Pin 4 (PD4) on ATmega328
+#define LINE_D 5 //Pin 5 (PD5) on ATmega328
+#define LINE_E 6 //Pin 6 (PD6) on ATmega328
 
 // how many times should it redraw the screen before moving on to the next generation?
 #define FRAME_DELAY 500
@@ -230,7 +231,10 @@ char current_living_cells(){
  * random sequence.  No one number repeats.
  */
 
-//this is all kind of ridiculous on an Arduino with 32k of ram the original code is for a very small device.
+// this is all kind of ridiculous on an Arduino with 32k of ram - the original
+// code is for a very small device. I left in the function in case anyone prefers
+// their randomness to be pseudo.
+
 uint16_t randreg = 222; //seed value
 static uint16_t pseudorandom16 (void)
 {
@@ -268,7 +272,6 @@ void set_random_next_frame(void){
   }
 }
 
-// wipes out all living cells
 char frame_log[20];
 void initialize_frame_log(){
   char cell;
@@ -300,12 +303,8 @@ void set_led_next_xy( char col, char row, char value ){
 
 char get_led_xy( char col, char row ){
   //5 columns, 4 rows, zero-indexed
-  if( col<0 | col>4 ){
-    return 0;
-  }
-  if( row<0 | row>3 ){
-    return 0;
-  }
+  if( col<0 | col>4 ){ return 0; }
+  if( row<0 | row>3 ){ return 0; }
   return led_grid[((5*row)+col)];
 }
 void generate_next_generation(void){  //looks at current generation, writes to next generation array
@@ -314,32 +313,16 @@ void generate_next_generation(void){  //looks at current generation, writes to n
     for ( col=0; col<=4; col++ ) {
       //look at cell (col,row) in current generation
 
-      //count the number of current neighbors
+      //count the number of current neighbors - currently planar.  I'd love to make it toroidal.
       neighbors = 0;
-      if( get_led_xy((col-1),(row-1)) > 0 ) { 
-        neighbors++; 
-      } //NW
-      if( get_led_xy(( col ),(row-1)) > 0 ) { 
-        neighbors++; 
-      } //N
-      if( get_led_xy((col+1),(row-1)) > 0 ) { 
-        neighbors++; 
-      } //NE
-      if( get_led_xy((col-1),( row )) > 0 ) { 
-        neighbors++; 
-      } //W
-      if( get_led_xy((col+1),( row )) > 0 ) { 
-        neighbors++; 
-      } //E
-      if( get_led_xy((col-1),(row+1)) > 0 ) { 
-        neighbors++; 
-      } //SW
-      if( get_led_xy(( col ),(row+1)) > 0 ) { 
-        neighbors++; 
-      } //S
-      if( get_led_xy((col+1),(row+1)) > 0 ) { 
-        neighbors++; 
-      } //SE
+      if( get_led_xy((col-1),(row-1)) > 0 ) { neighbors++; } //NW
+      if( get_led_xy(( col ),(row-1)) > 0 ) { neighbors++; } //N
+      if( get_led_xy((col+1),(row-1)) > 0 ) { neighbors++; } //NE
+      if( get_led_xy((col-1),( row )) > 0 ) { neighbors++; } //W
+      if( get_led_xy((col+1),( row )) > 0 ) { neighbors++; } //E
+      if( get_led_xy((col-1),(row+1)) > 0 ) { neighbors++; } //SW
+      if( get_led_xy(( col ),(row+1)) > 0 ) { neighbors++; } //S
+      if( get_led_xy((col+1),(row+1)) > 0 ) { neighbors++; } //SE
 
       if( get_led_xy(col,row) > 0 ){
 
@@ -401,7 +384,7 @@ const char led_dir[20] = {
   ( 1<<LINE_E | 1<<LINE_A ) //LED 19
   };
 
-  //PORTB output config for each LED (1 = High, 0 = Low)
+  //PORTD output config for each LED (1 = High, 0 = Low)
 const char led_out[20] = {
   ( 1<<LINE_A ), //LED 0
   ( 1<<LINE_B ), //LED 1
@@ -429,14 +412,14 @@ const char led_out[20] = {
   };
 
   void light_led(char led_num) { //led_num must be from 0 to 19
-    //DDRB is the ports in use
+    //DDRD is the ports in use
     DDRD = led_dir[led_num];
     PORTD = led_out[led_num];
   }
 
 void leds_off() {
-  DDRB = 0;
-  PORTB = 0;	
+  DDRD = 0;
+  PORTD = 0;	
 }
 
 void draw_frame(void){
