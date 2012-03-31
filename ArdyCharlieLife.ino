@@ -6,7 +6,7 @@
   TinyChuckArdy:
   
   A (light) conversion of http://b2ben.blogspot.com/2011/02/diving-into-microcontrollers-my-tiny.html for Arduino.
-
+  
 */
 
 // http://www.hobbytronics.co.uk/arduino-atmega328-pinout
@@ -25,12 +25,13 @@
 
 /*
   Theory of operation:
-
+  
   1) Write changes to led_grid_next[].
   2) call fade_to_next_frame to smoothly transition between the current frame and the next frame
   3) Purge changes in led_grid_next unless if you want them to persist.  fade_to_next_frame doesn't swap framebuffers.
-
+  
 */
+
 char led_grid[20] = {
   000 , 000 , 000 , 000 , 000 ,
   000 , 000 , 000 , 000 , 000 ,
@@ -47,7 +48,7 @@ char led_grid_next[20] = {
 
 void setup() {
   randomSeed(analogRead(0));
-// Just a few simple LED testing sweeps...
+  // Just a few simple LED testing sweeps...
   positive_h_test();
   negative_h_test();
   positive_v_test();
@@ -323,15 +324,22 @@ void generate_next_generation(void){  //looks at current generation, writes to n
       if( get_led_xy((col+1),(row+1)) > 0 ) { neighbors++; } //SE
 
       if( get_led_xy(col,row) > 0 ){
-	
-        //current cell is alive
+	//current cell is alive
         if( neighbors < 2 ){
           //Any live cell with fewer than two live neighbours dies, as if caused by under-population.
           set_led_next_xy( col , row , 0 );
         }
         if( (neighbors == 2) || (neighbors == 3) ){
           //Any live cell with two or three live neighbours lives on to the next generation.
-          set_led_next_xy( col , row , 100 );
+
+	  // Age cells by 25% brightness with each generation.  Cells don't tend
+	  // to live that long until the terminal screen anyway.
+
+	  if(get_led_xy(col,row) > 25) { set_led_next_xy( col, row, (get_led_xy(col,row)-20) ); }
+	  else { set_led_next_xy( col , row , get_led_xy(col,row) ); }
+
+	  // Or if you don't like aging, you just set it to 100.
+	  // set_led_next_xy( col , row , 100 );
         }
         if( neighbors > 3 ){
           //Any live cell with more than three live neighbours dies, as if by overcrowding.
@@ -340,8 +348,7 @@ void generate_next_generation(void){  //looks at current generation, writes to n
 
       } 
       else {
-
-        //current cell is dead
+	//current cell is dead
         if( neighbors == 3 ){
           // Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
           set_led_next_xy( col , row , 100 );
@@ -350,7 +357,6 @@ void generate_next_generation(void){  //looks at current generation, writes to n
           //stay dead for next generation
           set_led_next_xy( col , row , 0 );
         }
-
       }
     }
   }
