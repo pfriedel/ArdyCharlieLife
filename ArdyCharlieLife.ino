@@ -20,6 +20,9 @@
 // Toroidal playing field, or planar?
 #define TOROID 0
 
+// Start with a glider?
+#define INITIALGLIDER 0
+
 // how many times should it redraw the screen before moving on to the next generation?
 #define FRAME_DELAY 500
 #define SETUP_FRAME_DELAY 50
@@ -76,6 +79,7 @@ void loop() {
     
     //fade to random start frame
     set_random_next_frame();
+
     fade_to_next_frame();
     
     while(1){
@@ -256,7 +260,6 @@ static uint16_t pseudorandom16 (void)
   return randreg;
 } 
 
-
 void set_random_next_frame(void){
   char i;
 
@@ -271,7 +274,16 @@ void set_random_next_frame(void){
   //set random cells
   for( i=0 ; i<total ; i++ ) {
     cell = (pseudorandom16() % 20);
-    led_grid_next[cell] = 100;
+    if(INITIALGLIDER==1) {
+      led_grid_next[1] = 100;
+      led_grid_next[7] = 100;
+      led_grid_next[10] = 100;
+      led_grid_next[11] = 100;
+      led_grid_next[12] = 100;
+    }
+    else {
+      led_grid_next[cell] = 100;
+    }
   }
 }
 
