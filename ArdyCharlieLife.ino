@@ -17,6 +17,9 @@
 #define LINE_D 5 //Pin 5 (PD5) on ATmega328
 #define LINE_E 6 //Pin 6 (PD6) on ATmega328
 
+// Toroidal playing field, or planar?
+#define TOROID 0
+
 // how many times should it redraw the screen before moving on to the next generation?
 #define FRAME_DELAY 500
 #define SETUP_FRAME_DELAY 50
@@ -183,6 +186,7 @@ void positive_v_test() {
     for(int j = 0; j<=4; j++) {
       int x;
       x = (5*j+i);
+      // I suspect this is the cause of the animation delay in the first column.
       if(x>20) { continue; } 
       led_grid_next[x] = 100;
       for(int f = 0; f<=SETUP_FRAME_DELAY; f++) { fade_to_next_frame(); }
@@ -323,6 +327,34 @@ void generate_next_generation(void){  //looks at current generation, writes to n
       if( get_led_xy(( col ),(row+1)) > 0 ) { neighbors++; } //S
       if( get_led_xy((col+1),(row+1)) > 0 ) { neighbors++; } //SE
 
+      // I think the logic works, but it looks strange.
+      if(TOROID==1) {
+	if(col==0) {
+	  // all the (col-1) checks
+	  if( get_led_xy((4),(row-1)) > 0 ) { neighbors++; } //NW (cross toroid)
+	  if( get_led_xy((4),( row )) > 0 ) { neighbors++; } //W (cross toroid)
+	  if( get_led_xy((4),(row+1)) > 0 ) { neighbors++; } //SW (cross toroid)
+	}      
+	if(col==4) {
+	  // all the (col+1) checks
+	  if( get_led_xy((0),(row-1)) > 0 ) { neighbors++; } //NE (cross torid)
+	  if( get_led_xy((0),( row )) > 0 ) { neighbors++; } //E (cross toroid)
+	  if( get_led_xy((0),(row+1)) > 0 ) { neighbors++; } //SE (cross toroid)
+	}
+	if(row==0) {
+	  // all the (row-1) checks
+	  if( get_led_xy((col-1),(3)) > 0 ) { neighbors++; } //NW
+	  if( get_led_xy(( col ),(3)) > 0 ) { neighbors++; } //N
+	  if( get_led_xy((col+1),(3)) > 0 ) { neighbors++; } //NE
+	}
+	if(row==3) {
+	  // all the (row+1) checks
+	  if( get_led_xy((col-1),(0)) > 0 ) { neighbors++; } //SW
+	  if( get_led_xy(( col ),(0)) > 0 ) { neighbors++; } //S
+	  if( get_led_xy((col+1),(0)) > 0 ) { neighbors++; } //SE
+	}
+      }
+      
       if( get_led_xy(col,row) > 0 ){
 	//current cell is alive
         if( neighbors < 2 ){
@@ -331,13 +363,13 @@ void generate_next_generation(void){  //looks at current generation, writes to n
         }
         if( (neighbors == 2) || (neighbors == 3) ){
           //Any live cell with two or three live neighbours lives on to the next generation.
-
+	  
 	  // Age cells by 25% brightness with each generation.  Cells don't tend
 	  // to live that long until the terminal screen anyway.
-
+	  
 	  if(get_led_xy(col,row) > 25) { set_led_next_xy( col, row, (get_led_xy(col,row)-20) ); }
 	  else { set_led_next_xy( col , row , get_led_xy(col,row) ); }
-
+	  
 	  // Or if you don't like aging, you just set it to 100.
 	  // set_led_next_xy( col , row , 100 );
         }
@@ -345,7 +377,7 @@ void generate_next_generation(void){  //looks at current generation, writes to n
           //Any live cell with more than three live neighbours dies, as if by overcrowding.
           set_led_next_xy( col , row , 0 );
         }
-
+	
       } 
       else {
 	//current cell is dead
