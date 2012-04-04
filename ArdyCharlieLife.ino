@@ -279,7 +279,7 @@ void set_random_next_frame(void){
       led_grid_next[7] = 100;
       led_grid_next[10] = 100;
       led_grid_next[11] = 100;
-      led_grid_next[12] = 100;
+      led_grid_next[12] = 100; 
     }
     else {
       led_grid_next[cell] = 100;
@@ -318,8 +318,21 @@ void set_led_next_xy( char col, char row, char value ){
 
 char get_led_xy( char col, char row ){
   //5 columns, 4 rows, zero-indexed
-  if( col<0 | col>4 ){ return 0; }
-  if( row<0 | row>3 ){ return 0; }
+
+  // if TOROID is set, adjust the rows and columns to the opposite side of the
+  // grid.  Testing with a cross-shaped blinker confirms that the results are
+  // within expectations.  Gliders still fail, however.
+
+  if(TOROID == 1) {
+    if(col<0) { col = 4; }
+    if(col>4) { col = 0; }
+    if(row<0) { row = 3; }
+    if(row>3) { row = 0; }
+  }
+  else {
+    if( col<0 | col>4 ){ return 0; }
+    if( row<0 | row>3 ){ return 0; }
+  }
   return led_grid[((5*row)+col)];
 }
 void generate_next_generation(void){  //looks at current generation, writes to next generation array
@@ -339,34 +352,6 @@ void generate_next_generation(void){  //looks at current generation, writes to n
       if( get_led_xy(( col ),(row+1)) > 0 ) { neighbors++; } //S
       if( get_led_xy((col+1),(row+1)) > 0 ) { neighbors++; } //SE
 
-      // I think the logic works, but it looks strange.
-      if(TOROID==1) {
-	if(col==0) {
-	  // all the (col-1) checks
-	  if( get_led_xy((4),(row-1)) > 0 ) { neighbors++; } //NW (cross toroid)
-	  if( get_led_xy((4),( row )) > 0 ) { neighbors++; } //W (cross toroid)
-	  if( get_led_xy((4),(row+1)) > 0 ) { neighbors++; } //SW (cross toroid)
-	}      
-	if(col==4) {
-	  // all the (col+1) checks
-	  if( get_led_xy((0),(row-1)) > 0 ) { neighbors++; } //NE (cross torid)
-	  if( get_led_xy((0),( row )) > 0 ) { neighbors++; } //E (cross toroid)
-	  if( get_led_xy((0),(row+1)) > 0 ) { neighbors++; } //SE (cross toroid)
-	}
-	if(row==0) {
-	  // all the (row-1) checks
-	  if( get_led_xy((col-1),(3)) > 0 ) { neighbors++; } //NW
-	  if( get_led_xy(( col ),(3)) > 0 ) { neighbors++; } //N
-	  if( get_led_xy((col+1),(3)) > 0 ) { neighbors++; } //NE
-	}
-	if(row==3) {
-	  // all the (row+1) checks
-	  if( get_led_xy((col-1),(0)) > 0 ) { neighbors++; } //SW
-	  if( get_led_xy(( col ),(0)) > 0 ) { neighbors++; } //S
-	  if( get_led_xy((col+1),(0)) > 0 ) { neighbors++; } //SE
-	}
-      }
-      
       if( get_led_xy(col,row) > 0 ){
 	//current cell is alive
         if( neighbors < 2 ){
