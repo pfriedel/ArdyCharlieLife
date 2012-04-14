@@ -120,6 +120,9 @@ char digits[12][20] = {
     000,000,000,000,000
   }
 };
+
+int generation = 0;
+
 void setup() {
   randomSeed(analogRead(0));
   // Just a few simple LED testing sweeps...
@@ -150,16 +153,23 @@ void loop() {
   char led;
   
   while(1){
+    generation++;
     int f, frame_number;
     frame_number = 0;
     
     initialize_frame_log();
-    
+
     //fade to all-on LED grid
     for ( led=0; led<=19; led++ ) { led_grid_next[led] = 100; }
     fade_to_next_frame();
     for( f=0 ; f<FRAME_DELAY ; f++ ){ draw_frame(); } //display this frame for awhile
     
+    // Show me the generation
+    for(int x = 0; x<20; x++) {
+      led_grid_next[x] = digits[generation % 10][x];
+    }
+    for(int f=0; f<=1000; f++) { fade_to_next_frame(); }
+        
     //fade to random start frame
     set_random_next_frame();
 
