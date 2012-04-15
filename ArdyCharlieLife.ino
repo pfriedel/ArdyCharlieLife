@@ -132,22 +132,41 @@ void setup() {
   negative_v_test();
   positive_h_line_test();
   negative_h_line_test();
-  num_test();
+  num_test_serial();
 }
 
-
-void num_test() {
-  for(int y = 0; y<=12; y++) {
-    for(int x = 0; x<20; x++) {
-      led_grid_next[x] = digits[y][x];
-    }
-    for(int f = 0; f<=1000; f++) { fade_to_next_frame(); }
-    for(int x = 0; x<20; x++) {
-      led_grid_next[x] = 0;
-    }
+void num_test_serial() {
+  for(int y = 0; y<=20; y++) {
+    num_serial_disp(y);
   }
 }
 
+// given a number, I'll print it on the screen
+char num_serial_disp ( char num ) {
+  char array[10]; 
+  for(int x = 0; x<=10; x++) { array[x] = 'a'; } // initialize the array
+  char digit = num;
+  int count=10;
+  if(digit < 10) { 
+    array[10] = digit;
+  }
+  else {
+    while(digit >= 10) {
+      array[count] = digit%10; // get the modulo digit, put it into the rightmost element of the array
+      digit = digit/10; // divide the remainder by 10.
+      if(digit < 10) { array[count-1] = digit; } // if the remainder results in < 10, put it into the array
+      count = count - 1; 
+    }
+  }
+  for(int q = 0; q<=10; q++) { 
+    if(array[q] == 'a') { continue; } // skip the initialized trash at the beginning of the array
+    for(int x = 0; x<20; x++) { led_grid_next[x] = digits[array[q]][x]; } // load the digit into the buffer
+    for(int f = 0; f<=300; f++) { fade_to_next_frame(); } // display the digit
+    for(int x = 0; x<20; x++) { led_grid_next[x] = 0; } // clear the next display
+    for(int f = 0; f<50; f++) { fade_to_next_frame(); } // inter-number pause
+  }
+  delay(300);
+}  
 
 void loop() {
   char led;
@@ -165,9 +184,7 @@ void loop() {
     for( f=0 ; f<FRAME_DELAY ; f++ ){ draw_frame(); } //display this frame for awhile
     
     // Show me the generation
-    for(int x = 0; x<20; x++) {
-      led_grid_next[x] = digits[generation % 10][x];
-    }
+    num_serial_disp(generation);
     for(int f=0; f<=1000; f++) { fade_to_next_frame(); }
         
     //fade to random start frame
