@@ -78,10 +78,10 @@ char digits[12][20] = {
     000,100,000,100,000
   },
   {
-    000,100,100,100,100, // 4
-    000,100,000,000,000,
+    000,000,100,100,100, // 4
+    000,000,100,000,000,
     100,100,100,100,100,
-    000,100,000,000,000
+    000,000,100,000,000
   },
   {
     100,000,100,100,100, // 5
@@ -126,13 +126,13 @@ int generation = 0;
 void setup() {
   randomSeed(analogRead(0));
   // Just a few simple LED testing sweeps...
-  positive_h_test();
-  negative_h_test();
-  positive_v_test();
-  negative_v_test();
-  positive_h_line_test();
-  negative_h_line_test();
-  num_test_serial();
+//  positive_h_test();
+//  negative_h_test();
+//  positive_v_test();
+//  negative_v_test();
+//  positive_h_line_test();
+//  negative_h_line_test();
+//  num_test_serial();
 }
 
 void num_test_serial() {
@@ -141,12 +141,14 @@ void num_test_serial() {
   }
 }
 
+// fgreaks out at 128?
+
 // given a number, I'll print it on the screen
-char num_serial_disp ( char num ) {
+void num_serial_disp ( int num ) {
   char array[10]; 
   for(int x = 0; x<=10; x++) { array[x] = 'a'; } // initialize the array
-  char digit = num;
-  int count=10;
+  int digit = num;
+  int count = 10;
   if(digit < 10) { 
     array[10] = digit;
   }
@@ -161,9 +163,9 @@ char num_serial_disp ( char num ) {
   for(int q = 0; q<=10; q++) { 
     if(array[q] == 'a') { continue; } // skip the initialized trash at the beginning of the array
     for(int x = 0; x<20; x++) { led_grid_next[x] = digits[array[q]][x]; } // load the digit into the buffer
-    for(int f = 0; f<=300; f++) { fade_to_next_frame(); } // display the digit
+    for(int f = 0; f<=FRAME_DELAY; f++) { fade_to_next_frame(); } // display the digit
     for(int x = 0; x<20; x++) { led_grid_next[x] = 0; } // clear the next display
-    for(int f = 0; f<50; f++) { fade_to_next_frame(); } // inter-number pause
+    for(int f = 0; f<SETUP_FRAME_DELAY; f++) { fade_to_next_frame(); } // inter-number pause
   }
   delay(300);
 }  
@@ -184,6 +186,7 @@ void loop() {
     for( f=0 ; f<FRAME_DELAY ; f++ ){ draw_frame(); } //display this frame for awhile
     
     // Show me the generation
+    Serial.println(generation);
     num_serial_disp(generation);
     for(int f=0; f<=1000; f++) { fade_to_next_frame(); }
         
