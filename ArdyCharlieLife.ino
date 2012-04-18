@@ -121,9 +121,10 @@ char digits[12][20] = {
   }
 };
 
-int generation = 0;
+unsigned long generation = 0;
 
 void setup() {
+  Serial.begin(9600);
   randomSeed(analogRead(0));
   // Just a few simple LED testing sweeps...
 //  positive_h_test();
@@ -141,19 +142,18 @@ void num_test_serial() {
   }
 }
 
-// fgreaks out at 128?
-
 // given a number, I'll print it on the screen
-void num_serial_disp ( int num ) {
+void num_serial_disp ( unsigned long num ) {
+  Serial.println(num, DEC);
   char array[10]; 
   for(int x = 0; x<=10; x++) { array[x] = 'a'; } // initialize the array
-  int digit = num;
+  unsigned long digit = num;
   int count = 10;
   if(digit < 10) { 
     array[10] = digit;
   }
   else {
-    while(digit >= 10) {
+   while(digit >= 10) {
       array[count] = digit%10; // get the modulo digit, put it into the rightmost element of the array
       digit = digit/10; // divide the remainder by 10.
       if(digit < 10) { array[count-1] = digit; } // if the remainder results in < 10, put it into the array
