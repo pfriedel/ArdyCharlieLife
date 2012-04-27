@@ -9,6 +9,9 @@
   
 */
 
+// uncomment this to enable the debugging serial console, otherwise comment it out and save 2k.
+#define _DEBUG_     true
+
 // http://www.hobbytronics.co.uk/arduino-atmega328-pinout
 
 #define LINE_A 2 //Pin 2 (PD2) on ATmega328
@@ -28,6 +31,15 @@
 #define SETUP_FRAME_DELAY 50
 
 #include <avr/io.h>
+#include <Wire.h>
+#include "RTClib.h"
+#include <dht11.h>
+#include <String.h>
+
+
+RTC_DS1307 RTC;
+dht11 DHT11;
+#define DHT11PIN 14
 
 /*
   Theory of operation:
@@ -39,17 +51,17 @@
 */
 
 char led_grid[20] = {
-  000 , 000 , 000 , 000 , 000 ,
-  000 , 000 , 000 , 000 , 000 ,
-  000 , 000 , 000 , 000 , 000 ,
-  000 , 000 , 000 , 000 , 000
+  000,000,000,000,000,
+  000,000,000,000,000,
+  000,000,000,000,000,
+  000,000,000,000,000
 };
 
 char led_grid_next[20] = {
-  000 , 000 , 000 , 000 , 000 ,
-  000 , 000 , 000 , 000 , 000 ,
-  000 , 000 , 000 , 000 , 000 ,
-  000 , 000 , 000 , 000 , 000
+  000,000,000,000,000,
+  000,000,000,000,000,
+  000,000,000,000,000,
+  000,000,000,000,000
 };
 
 char digits[12][20] = {
@@ -60,10 +72,10 @@ char digits[12][20] = {
     000,100,100,100,000
   },
   {
-    100,000,000,000,100, // 1
+    000,000,000,000,000, // 1
+    100,000,000,000,100,
     100,100,100,100,100,
-    100,000,000,000,000,
-    000,000,000,000,000
+    100,000,000,000,000
   },
   {
     100,100,000,000,100, // 2
@@ -124,8 +136,22 @@ char digits[12][20] = {
 unsigned long generation = 0;
 
 void setup() {
+#ifdef _DEBUG_
   Serial.begin(9600);
-  randomSeed(analogRead(0));
+#endif
+  randomSeed(analogRead(1));
+  
+  Wire.begin();
+  RTC.begin();
+  //  RTC.adjust(DateTime(__DATE__, __TIME__));
+  if (! RTC.isrunning()) {
+#ifdef _DEBUG_
+    Serial.println("RTC is NOT running!");
+#endif
+    // following line sets the RTC to the date & time this sketch was compiled
+    RTC.adjust(DateTime(__DATE__, __TIME__));
+  }
+  
   // Just a few simple LED testing sweeps...
 //  positive_h_test();
 //  negative_h_test();
@@ -144,7 +170,10 @@ void num_test_serial() {
 
 // given a number, I'll print it on the screen
 void num_serial_disp ( unsigned long num ) {
+#ifdef _DEBUG_
+  Serial.print("Number to print: ");
   Serial.println(num, DEC);
+#endif
   char array[10]; 
   for(int x = 0; x<=10; x++) { array[x] = 'a'; } // initialize the array
   unsigned long digit = num;
@@ -167,7 +196,7 @@ void num_serial_disp ( unsigned long num ) {
     for(int x = 0; x<20; x++) { led_grid_next[x] = 0; } // clear the next display
     for(int f = 0; f<SETUP_FRAME_DELAY; f++) { fade_to_next_frame(); } // inter-number pause
   }
-  delay(300);
+  //  delay(300);
 }  
 
 void loop() {
@@ -186,10 +215,56 @@ void loop() {
     for( f=0 ; f<FRAME_DELAY ; f++ ){ draw_frame(); } //display this frame for awhile
     
     // Show me the generation
+#ifdef _DEBUG_
+    Serial.println();
+    Serial.print("Generation: ");
     Serial.println(generation);
+#endif
     num_serial_disp(generation);
-    for(int f=0; f<=1000; f++) { fade_to_next_frame(); }
+    for(int f=0; f<=(FRAME_DELAY*2); f++) { fade_to_next_frame(); }
+
+    // Show me the temp
+    int pre = millis();
+    int chk = DHT11.read(DHT11PIN);
+    int post = millis();
+    if(chk == 0) {
+      int temp = (1.8*DHT11.temperature+32);
+#ifdef _DEBUG_
+      Serial.print("Temperature: ");
+      Serial.println(temp);
+#endif
+      num_serial_disp(temp);
+    }
+    else {
+      num_serial_disp(99);
+    }
+    for(int f=0; f<=(FRAME_DELAY*2); f++) { fade_to_next_frame(); }
+#ifdef _DEBUG_
+    Serial.print("Time to read sensor: ");
+    Serial.print(post-pre);
+    Serial.print("ms\n");
+#endif
         
+    // Show me the time
+    DateTime now = RTC.now();
+
+    int hr = now.hour();
+    int min = now.minute();
+
+#ifdef _DEBUG_
+    Serial.print("Time: ");
+    Serial.print(hr, DEC);
+    Serial.print(':');
+    Serial.println(min, DEC);
+#endif
+    
+    num_serial_disp(hr);
+    for(int f=0; f<=(FRAME_DELAY/2); f++) { fade_to_next_frame(); }
+    if(min < 10) { num_serial_disp(0); } // pad out the first 10 minutes to have 2 digits.
+    num_serial_disp(min);
+    for(int f=0; f<=(FRAME_DELAY*2); f++) { fade_to_next_frame(); }
+    
+    
     //fade to random start frame
     set_random_next_frame();
 
