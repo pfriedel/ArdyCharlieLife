@@ -19,6 +19,7 @@
 #define LINE_C 4 //Pin 4 (PD4) on ATmega328
 #define LINE_D 5 //Pin 5 (PD5) on ATmega328
 #define LINE_E 6 //Pin 6 (PD6) on ATmega328
+#define LINE_F 7 //Pin 7 (PD7) on Atmega328
 
 // Toroidal playing field, or planar?
 #define TOROID 0
@@ -27,19 +28,19 @@
 #define INITIALGLIDER 0
 
 // how many times should it redraw the screen before moving on to the next generation?
-#define FRAME_DELAY 500
+#define FRAME_DELAY 250
 #define SETUP_FRAME_DELAY 50
 
 #include <avr/io.h>
-#include <Wire.h>
-#include "RTClib.h"
-#include <dht11.h>
-#include <String.h>
+//#include <Wire.h>
+//#include "RTClib.h"
+//#include <dht11.h>
+//#include <String.h>
 
 
-RTC_DS1307 RTC;
-dht11 DHT11;
-#define DHT11PIN 14
+//RTC_DS1307 RTC;
+//dht11 DHT11;
+//#define DHT11PIN 14
 
 /*
   Theory of operation:
@@ -50,116 +51,127 @@ dht11 DHT11;
   
 */
 
-char led_grid[20] = {
-  000,000,000,000,000,
-  000,000,000,000,000,
-  000,000,000,000,000,
-  000,000,000,000,000
+char led_grid[30] = {
+  000,000,000,000,000,000,
+  000,000,000,000,000,000,
+  000,000,000,000,000,000,
+  000,000,000,000,000,000,
+  000,000,000,000,000,000
 };
 
-char led_grid_next[20] = {
-  000,000,000,000,000,
-  000,000,000,000,000,
-  000,000,000,000,000,
-  000,000,000,000,000
+char led_grid_next[30] = {
+  000,000,000,000,000,000,
+  000,000,000,000,000,000,
+  000,000,000,000,000,000,
+  000,000,000,000,000,000,
+  000,000,000,000,000,000
 };
 
-char digits[12][20] = {
+char digits[12][30] = {
   {
-    000,100,100,100,000, // 0
-    100,000,000,000,100,
-    100,000,000,000,100,
-    000,100,100,100,000
+    000,100,000,000,000,000, //0
+    100,000,100,000,000,000,
+    100,000,100,000,000,000,
+    100,000,100,000,000,000,
+    000,100,000,000,000,000
   },
   {
-    000,000,000,000,000, // 1
-    100,000,000,000,100,
-    100,100,100,100,100,
-    100,000,000,000,000
+    000,100,000,000,000,000, //1
+    000,100,000,000,000,000,
+    000,100,000,000,000,000,
+    000,100,000,000,000,000,
+    000,100,000,000,000,000
   },
   {
-    100,100,000,000,100, // 2
-    100,000,100,000,100,
-    100,000,100,000,100,
-    100,000,000,100,000
+    100,100,000,000,000,000, //2
+    000,000,100,000,000,000,
+    000,100,000,000,000,000,
+    100,000,000,000,000,000,
+    100,100,100,000,000,000
   },
   {
-    100,000,000,000,100, // 3
-    100,000,100,000,100,
-    100,000,100,000,100,
-    000,100,000,100,000
+    100,100,100,000,000,000, //3
+    000,000,100,000,000,000,
+    000,100,100,000,000,000,
+    000,000,100,000,000,000,
+    100,100,100,000,000,000
   },
   {
-    000,000,100,100,100, // 4
-    000,000,100,000,000,
-    100,100,100,100,100,
-    000,000,100,000,000
+    100,000,000,000,000,000, //4
+    100,000,100,000,000,000,
+    100,100,100,000,000,000,
+    000,000,100,000,000,000,
+    000,000,100,000,000,000
   },
   {
-    100,000,100,100,100, // 5
-    100,000,100,000,100,
-    100,000,100,000,100,
-    000,100,000,000,100,
+    100,100,100,000,000,000, //5
+    100,000,000,000,000,000,
+    100,100,100,000,000,000,
+    000,000,100,000,000,000,
+    100,100,000,000,000,000
   },
   {
-    000,100,100,100,000, // 6
-    100,000,100,000,100,
-    100,000,100,000,100,
-    000,100,000,000,000
+    000,100,100,000,000,000, //6
+    100,000,000,000,000,000,
+    100,100,100,000,000,000,
+    100,000,100,000,000,000,
+    000,100,000,000,000,000
   },
   {
-    000,000,000,000,100, // 7
-    100,100,000,000,100,
-    000,000,100,000,100,
-    000,000,000,100,100
+    100,100,100,000,000,000, //7
+    000,000,100,000,000,000,
+    000,100,000,000,000,000,
+    100,000,000,000,000,000,
+    100,000,000,000,000,000
   },
   {
-    000,100,000,100,000, // 8
-    100,000,100,000,100,
-    100,000,100,000,100,
-    000,100,000,100,000
+    100,100,100,000,000,000, //8
+    100,000,100,000,000,000,
+    000,100,000,000,000,000,
+    100,000,100,000,000,000,
+    100,100,100,000,000,000
   },
   {
-    000,000,000,100,000, // 9
-    100,000,100,000,100,
-    100,000,100,000,100,
-    000,100,100,100,000
+    000,100,000,000,000,000, //9
+    100,000,100,000,000,000,
+    100,100,100,000,000,000,
+    000,000,100,000,000,000,
+    100,100,000,000,000,000
   },
   {
-    000,000,000,000,000, // :
-    000,100,000,100,000,
-    000,000,000,000,000,
-    000,000,000,000,000
+    000,000,000,000,000,000, // :
+    000,100,000,000,000,000,
+    000,000,000,000,000,000,
+    000,100,000,000,000,000,
+    000,000,000,000,000,000
   }
 };
-
-unsigned long generation = 0;
 
 void setup() {
 #ifdef _DEBUG_
-  Serial.begin(9600);
+  Serial.begin(115200);
 #endif
   randomSeed(analogRead(1));
   
-  Wire.begin();
-  RTC.begin();
-  //  RTC.adjust(DateTime(__DATE__, __TIME__));
-  if (! RTC.isrunning()) {
-#ifdef _DEBUG_
-    Serial.println("RTC is NOT running!");
-#endif
-    // following line sets the RTC to the date & time this sketch was compiled
-    RTC.adjust(DateTime(__DATE__, __TIME__));
-  }
+//  Wire.begin();
+//  RTC.begin();
+//  //  RTC.adjust(DateTime(__DATE__, __TIME__));
+//  if (! RTC.isrunning()) {
+//#ifdef _DEBUG_
+//    Serial.println("RTC is NOT running!");
+//#endif
+//    // following line sets the RTC to the date & time this sketch was compiled
+//    RTC.adjust(DateTime(__DATE__, __TIME__));
+//  }
   
   // Just a few simple LED testing sweeps...
-//  positive_h_test();
-//  negative_h_test();
-//  positive_v_test();
-//  negative_v_test();
-//  positive_h_line_test();
+  //  positive_h_test();
+  //  negative_h_test();
+  //  positive_v_test();
+  //  negative_v_test();
+    positive_h_line_test();
 //  negative_h_line_test();
-//  num_test_serial();
+  num_test_serial();
 }
 
 void num_test_serial() {
@@ -169,6 +181,7 @@ void num_test_serial() {
 }
 
 // given a number, I'll print it on the screen
+// big grid safe
 void num_serial_disp ( unsigned long num ) {
 #ifdef _DEBUG_
   Serial.print("Number to print: ");
@@ -191,15 +204,17 @@ void num_serial_disp ( unsigned long num ) {
   }
   for(int q = 0; q<=10; q++) { 
     if(array[q] == 'a') { continue; } // skip the initialized trash at the beginning of the array
-    for(int x = 0; x<20; x++) { led_grid_next[x] = digits[array[q]][x]; } // load the digit into the buffer
+    for(int x = 0; x<30; x++) { led_grid_next[x] = digits[array[q]][x]; } // load the digit into the buffer
     for(int f = 0; f<=FRAME_DELAY; f++) { fade_to_next_frame(); } // display the digit
-    for(int x = 0; x<20; x++) { led_grid_next[x] = 0; } // clear the next display
+    for(int x = 0; x<30; x++) { led_grid_next[x] = 0; } // clear the next display
     for(int f = 0; f<SETUP_FRAME_DELAY; f++) { fade_to_next_frame(); } // inter-number pause
   }
   //  delay(300);
 }  
 
 void loop() {
+  unsigned long generation = 0;
+
   char led;
   
   while(1){
@@ -210,7 +225,7 @@ void loop() {
     initialize_frame_log();
 
     //fade to all-on LED grid
-    for ( led=0; led<=19; led++ ) { led_grid_next[led] = 100; }
+    for ( led=0; led<=29; led++ ) { led_grid_next[led] = 100; }
     fade_to_next_frame();
     for( f=0 ; f<FRAME_DELAY ; f++ ){ draw_frame(); } //display this frame for awhile
     
@@ -223,47 +238,47 @@ void loop() {
     num_serial_disp(generation);
     for(int f=0; f<=(FRAME_DELAY*2); f++) { fade_to_next_frame(); }
 
-    // Show me the temp
-    int pre = millis();
-    int chk = DHT11.read(DHT11PIN);
-    int post = millis();
-    if(chk == 0) {
-      int temp = (1.8*DHT11.temperature+32);
-#ifdef _DEBUG_
-      Serial.print("Temperature: ");
-      Serial.println(temp);
-#endif
-      num_serial_disp(temp);
-    }
-    else {
-      num_serial_disp(99);
-    }
-    for(int f=0; f<=(FRAME_DELAY*2); f++) { fade_to_next_frame(); }
-#ifdef _DEBUG_
-    Serial.print("Time to read sensor: ");
-    Serial.print(post-pre);
-    Serial.print("ms\n");
-#endif
-        
-    // Show me the time
-    DateTime now = RTC.now();
-
-    int hr = now.hour();
-    int min = now.minute();
-
-#ifdef _DEBUG_
-    Serial.print("Time: ");
-    Serial.print(hr, DEC);
-    Serial.print(':');
-    Serial.println(min, DEC);
-#endif
-    
-    num_serial_disp(hr);
-    for(int f=0; f<=(FRAME_DELAY/2); f++) { fade_to_next_frame(); }
-    if(min < 10) { num_serial_disp(0); } // pad out the first 10 minutes to have 2 digits.
-    num_serial_disp(min);
-    for(int f=0; f<=(FRAME_DELAY*2); f++) { fade_to_next_frame(); }
-    
+//    // Show me the temp
+//    int pre = millis();
+//    int chk = DHT11.read(DHT11PIN);
+//    int post = millis();
+//    if(chk == 0) {
+//      int temp = (1.8*DHT11.temperature+32);
+//#ifdef _DEBUG_
+//      Serial.print("Temperature: ");
+//      Serial.println(temp);
+//#endif
+//      num_serial_disp(temp);
+//    }
+//    else {
+//      num_serial_disp(99);
+//    }
+//    for(int f=0; f<=(FRAME_DELAY*2); f++) { fade_to_next_frame(); }
+//#ifdef _DEBUG_
+//    Serial.print("Time to read sensor: ");
+//    Serial.print(post-pre);
+//    Serial.print("ms\n");
+//#endif
+//        
+//    // Show me the time
+//    DateTime now = RTC.now();
+//
+//    int hr = now.hour();
+//    int min = now.minute();
+//
+//#ifdef _DEBUG_
+//    Serial.print("Time: ");
+//    Serial.print(hr, DEC);
+//    Serial.print(':');
+//    Serial.println(min, DEC);
+//#endif
+//    
+//    num_serial_disp(hr);
+//    for(int f=0; f<=(FRAME_DELAY/2); f++) { fade_to_next_frame(); }
+//    if(min < 10) { num_serial_disp(0); } // pad out the first 10 minutes to have 2 digits.
+//    num_serial_disp(min);
+//    for(int f=0; f<=(FRAME_DELAY*2); f++) { fade_to_next_frame(); }
+//    
     
     //fade to random start frame
     set_random_next_frame();
@@ -314,8 +329,8 @@ void loop() {
 }
 
 void positive_h_test() {
-  // counts up from the lower right hand corner horizontally, individually lighting lamps
-  for(int x = 0; x<=19; x++) {
+  // counts up from the top left hand corner horizontally, individually lighting lamps
+  for(int x = 0; x<=29; x++) {
     // set this LED to 100% brightness in the next frame
     led_grid_next[x] = 100;
     // Display the results of the changes to the next frame
@@ -344,12 +359,12 @@ void negative_h_line_test() {
 void positive_h_line_test() {
   // horizontal lines ascending the grid
   for(int repeat = 0; repeat<=1; repeat++) { 
-    for(int y=1; y<=4; y++) {
-      for(int x=1; x<=5; x++) {
+    for(int y=0; y<=5; y++) { // 1 additional row to the last row gets cleared.
+      for(int x=0; x<6; x++) {
 	int k;
-	k = ((5*y)+x)-6;
-	led_grid_next[k] = 100;
-	led_grid_next[k-5] = 0;
+	k = ((6*y)+x);
+	led_grid_next[k] = 50;
+	led_grid_next[k-6] = 0;
       }
       for(int f=0; f<=SETUP_FRAME_DELAY; f++) { fade_to_next_frame(); }
       for( int cell=0 ; cell<20 ; cell++ ){ led_grid_next[cell] = -1; }
@@ -359,11 +374,11 @@ void positive_h_line_test() {
 
 void negative_v_test() {
   // counts down from the upper left hand corner vertically, lighting each LED individually.
-  for(int i = 4; i>=0; i--) {
-    for(int j = 4; j>=0; j--) {
+  for(int i = 5; i>=0; i--) {
+    for(int j = 5; j>=0; j--) {
       int x;
-      x = (5*j+i);
-      if(x>20) { continue; } 
+      x = (6*j+i);
+      if(x>30) { continue; } 
       if(x<0) { continue; }
       led_grid_next[x] = 100;
       for(int f = 0; f<=SETUP_FRAME_DELAY; f++) { fade_to_next_frame(); }
@@ -373,13 +388,13 @@ void negative_v_test() {
 }
 
 void positive_v_test() {
-  // counts up from the lower left corner vrtically, individually lighting lamps
-  for(int i = 0; i<=4; i++) {
-    for(int j = 0; j<=4; j++) {
+  // counts up from the top left corner vrtically, individually lighting lamps
+  for(int i = 0; i<=5; i++) {
+    for(int j = 0; j<=5; j++) {
       int x;
-      x = (5*j+i);
+      x = (6*j+i);
       // I suspect this is the cause of the animation delay in the first column.
-      if(x>20) { continue; } 
+      if(x>30) { continue; } 
       led_grid_next[x] = 100;
       for(int f = 0; f<=SETUP_FRAME_DELAY; f++) { fade_to_next_frame(); }
       led_grid_next[x] = 0;
@@ -389,7 +404,7 @@ void positive_v_test() {
 
 void negative_h_test() {
   // Counts down from the upper left hand corner, individually lighting lamps.
-  for(int x = 19; x>=0; x--) {
+  for(int x = 29; x>=0; x--) {
     led_grid_next[x] = 100;
     for(int f = 0; f<=SETUP_FRAME_DELAY; f++) { fade_to_next_frame(); }
     led_grid_next[x] = 0;
@@ -399,7 +414,7 @@ void negative_h_test() {
 char current_equals_next(){
   char led, diffs;
   diffs = 0;
-  for(led=0;led<=19;led++){
+  for(led=0;led<=29;led++){
     if( led_grid[led] != led_grid_next[led] ){ 
       return 0; 
     } //a difference was found, return 0 (for False)
@@ -409,7 +424,7 @@ char current_equals_next(){
 
 char current_living_cells(){
   char led, cells;
-  for ( led=0; led<=19; led++ ) {
+  for ( led=0; led<=29; led++ ) {
     if( led_grid[led] > 0 ){ 
       cells++; 
     }
@@ -452,16 +467,16 @@ void set_random_next_frame(void){
   char i;
 
   //clear LED Grid
-  for ( i=0; i<=19; i++ ) {
+  for ( i=0; i<=29; i++ ) {
     led_grid_next[i] = 0;
   }
 
   char total, cell;
-  total = ((pseudorandom16() % 16)+5); //yield random from 5 to 20
+  total = ((pseudorandom16() % 16)+15); //yield random from 5 to 20
 
   //set random cells
   for( i=0 ; i<total ; i++ ) {
-    cell = (pseudorandom16() % 20);
+    cell = (pseudorandom16() % 30);
     if(INITIALGLIDER==1) {
       led_grid_next[1] = 100;
       led_grid_next[7] = 100;
@@ -492,7 +507,7 @@ void log_current_frame(){
 int next_equals_logged_frame(){
   char cell, diffs;
   diffs = 0;
-  for( cell=0 ; cell<=19 ; cell++ ){
+  for( cell=0 ; cell<=29 ; cell++ ){
     if( led_grid_next[cell] != frame_log[cell] ){ 
       return 0; 
     } //a difference was found, return 0 (for False)
@@ -518,15 +533,27 @@ char get_led_xy( char col, char row ){
     if(row>3) { row = 0; }
   }
   else {
-    if( col<0 | col>4 ){ return 0; }
-    if( row<0 | row>3 ){ return 0; }
+    if( col<0 | col>5 ){ return 0; }
+    if( row<0 | row>4 ){ return 0; }
   }
-  return led_grid[((5*row)+col)];
+  Serial.println("------");
+  Serial.println(col, DEC);
+  Serial.println(row, DEC);
+  int pos = ((6*col)+row);
+  Serial.println(pos, DEC);
+  return led_grid[((6*col)+row)];
 }
+
 void generate_next_generation(void){  //looks at current generation, writes to next generation array
   char row, col, neighbors;
-  for ( row=0; row<=3; row++ ) {
-    for ( col=0; col<=4; col++ ) {
+  for ( row=0; row<=4; row++ ) {
+    for ( col=0; col<=5; col++ ) {
+      Serial.println("======");
+      Serial.print("row=");
+      Serial.println(row, DEC);
+      Serial.print("col=");
+      Serial.println(col, DEC);
+
       //look at cell (col,row) in current generation
 
       //count the number of current neighbors - currently planar.  I'd love to make it toroidal.
@@ -579,57 +606,80 @@ void generate_next_generation(void){  //looks at current generation, writes to n
   }
 }
 
-const char led_dir[20] = {
-  ( 1<<LINE_A | 1<<LINE_E ), //LED 0
-  ( 1<<LINE_B | 1<<LINE_E ), //LED 1
-  ( 1<<LINE_C | 1<<LINE_E ), //LED 2
-  ( 1<<LINE_D | 1<<LINE_E ), //LED 3
-  ( 1<<LINE_E | 1<<LINE_D ), //LED 4
-  
-  ( 1<<LINE_A | 1<<LINE_D ), //LED 5
-  ( 1<<LINE_B | 1<<LINE_D ), //LED 6
-  ( 1<<LINE_C | 1<<LINE_D ), //LED 7
-  ( 1<<LINE_D | 1<<LINE_C ), //LED 8
-  ( 1<<LINE_E | 1<<LINE_C ), //LED 9
-  
-  ( 1<<LINE_A | 1<<LINE_C ), //LED 10
-  ( 1<<LINE_B | 1<<LINE_C ), //LED 11
-  ( 1<<LINE_C | 1<<LINE_B ), //LED 12
-  ( 1<<LINE_D | 1<<LINE_B ), //LED 13
-  ( 1<<LINE_E | 1<<LINE_B ), //LED 14
-  
-  ( 1<<LINE_A | 1<<LINE_B ), //LED 15
-  ( 1<<LINE_B | 1<<LINE_A ), //LED 16
-  ( 1<<LINE_C | 1<<LINE_A ), //LED 17
-  ( 1<<LINE_D | 1<<LINE_A ), //LED 18
-  ( 1<<LINE_E | 1<<LINE_A ) //LED 19
+const char led_dir[30] = {
+  (1<<LINE_E | 1<<LINE_F ), // led00
+  (1<<LINE_F | 1<<LINE_E ), // led01
+  (1<<LINE_F | 1<<LINE_D ), // led02
+  (1<<LINE_F | 1<<LINE_C ), // led03
+  (1<<LINE_F | 1<<LINE_B ), // led04
+  (1<<LINE_F | 1<<LINE_A ), // led05
+
+  (1<<LINE_D | 1<<LINE_F ), // led06
+  (1<<LINE_D | 1<<LINE_E ), // led07
+  (1<<LINE_E | 1<<LINE_D ), // led08
+  (1<<LINE_E | 1<<LINE_C ), // led09
+  (1<<LINE_E | 1<<LINE_B ), // led10
+  (1<<LINE_E | 1<<LINE_A ), // led11
+
+  (1<<LINE_C | 1<<LINE_F ), // led12
+  (1<<LINE_C | 1<<LINE_E ), // led13
+  (1<<LINE_C | 1<<LINE_D ), // led14
+  (1<<LINE_D | 1<<LINE_C ), // led15
+  (1<<LINE_D | 1<<LINE_B ), // led16
+  (1<<LINE_D | 1<<LINE_A ), // led17
+
+  (1<<LINE_B | 1<<LINE_F ), // led18
+  (1<<LINE_B | 1<<LINE_E ), // led19
+  (1<<LINE_B | 1<<LINE_D ), // led20
+  (1<<LINE_B | 1<<LINE_C ), // led21
+  (1<<LINE_C | 1<<LINE_B ), // led22
+  (1<<LINE_C | 1<<LINE_A ), // led23
+
+  (1<<LINE_A | 1<<LINE_F ), // led24
+  (1<<LINE_A | 1<<LINE_E ), // led25
+  (1<<LINE_A | 1<<LINE_D ), // led26
+  (1<<LINE_A | 1<<LINE_C ), // led27
+  (1<<LINE_A | 1<<LINE_B ), // led28
+  (1<<LINE_B | 1<<LINE_A ) // led29
+
 };
 
 //PORTD output config for each LED (1 = High, 0 = Low)
-const char led_out[20] = {
-  ( 1<<LINE_A ), //LED 0
-  ( 1<<LINE_B ), //LED 1
-  ( 1<<LINE_C ), //LED 2
-  ( 1<<LINE_D ), //LED 3
-  ( 1<<LINE_E ), //LED 4
-  
-  ( 1<<LINE_A ), //LED 5
-  ( 1<<LINE_B ), //LED 6
-  ( 1<<LINE_C ), //LED 7
-  ( 1<<LINE_D ), //LED 8
-  ( 1<<LINE_E ), //LED 9
-  
-  ( 1<<LINE_A ), //LED 10
-  ( 1<<LINE_B ), //LED 11
-  ( 1<<LINE_C ), //LED 12
-  ( 1<<LINE_D ), //LED 13
-  ( 1<<LINE_E ), //LED 14
-  
-  ( 1<<LINE_A ), //LED 15
-  ( 1<<LINE_B ), //LED 16
-  ( 1<<LINE_C ), //LED 17
-  ( 1<<LINE_D ), //LED 18
-  ( 1<<LINE_E ) //LED 19
+const char led_out[30] = {
+  (1<<LINE_E ), // led00
+  (1<<LINE_F ), // led01
+  (1<<LINE_F ), // led02
+  (1<<LINE_F ), // led03
+  (1<<LINE_F ), // led04
+  (1<<LINE_F ), // led05
+
+  (1<<LINE_D ), // led06
+  (1<<LINE_D ), // led07
+  (1<<LINE_E ), // led08
+  (1<<LINE_E ), // led09
+  (1<<LINE_E ), // led10
+  (1<<LINE_E ), // led11
+
+  (1<<LINE_C ), // led12
+  (1<<LINE_C ), // led13
+  (1<<LINE_C ), // led14
+  (1<<LINE_D ), // led15
+  (1<<LINE_D ), // led16
+  (1<<LINE_D ), // led17
+
+  (1<<LINE_B ), // led18
+  (1<<LINE_B ), // led19
+  (1<<LINE_B ), // led20
+  (1<<LINE_B ), // led21
+  (1<<LINE_C ), // led22
+  (1<<LINE_C ), // led23
+
+  (1<<LINE_A ), // led24
+  (1<<LINE_A ), // led25
+  (1<<LINE_A ), // led26
+  (1<<LINE_A ), // led27
+  (1<<LINE_A ), // led28
+  (1<<LINE_B ) // led29
 };
 
 void light_led(char led_num) { //led_num must be from 0 to 19
@@ -645,7 +695,7 @@ void leds_off() {
 
 void draw_frame(void){
   char led, bright_val, b;
-  for ( led=0; led<=19; led++ ) {
+  for ( led=0; led<=29; led++ ) {
     //software PWM
     bright_val = led_grid[led];
     // A little explanation here: If bright_val is 50, the LED will be lit 50% of the time by the following two lines.
@@ -659,7 +709,7 @@ void fade_to_next_frame(void){
 
   while(1){
     changes = 0;
-    for ( led=0; led<=19; led++ ) {
+    for ( led=0; led<=29; led++ ) {
       if( led_grid[led] < led_grid_next[led] ){ 
         led_grid[led] = (led_grid[led]+1); 
         changes++; 
